@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { auth, signOut } from "@/auth";
-import { redirect } from "next/navigation";
+import { signOut } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { GithubIcon, LogOut } from "lucide-react";
 import Link from "next/link";
@@ -41,118 +40,72 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { User } from "next-auth";
 import { useSession } from "next-auth/react";
+import { userSignOut } from "@/lib/auth.action";
 
-// Mock data for repositories
-const mockRepositories = [
-  {
-    id: "1",
-    name: "project-management-app",
-    description:
-      "A full-stack project management application with real-time updates",
-    language: "TypeScript",
-    stars: 48,
-    forks: 12,
-    updatedAt: "2 days ago",
-    isPrivate: false,
-  },
-  {
-    id: "2",
-    name: "e-commerce-platform",
-    description:
-      "Modern e-commerce platform built with Next.js and Stripe integration",
-    language: "JavaScript",
-    stars: 32,
-    forks: 8,
-    updatedAt: "1 week ago",
-    isPrivate: true,
-  },
-  {
-    id: "3",
-    name: "ai-image-generator",
-    description:
-      "AI-powered image generation tool using stable diffusion models",
-    language: "Python",
-    stars: 156,
-    forks: 23,
-    updatedAt: "3 days ago",
-    isPrivate: false,
-  },
-  {
-    id: "4",
-    name: "blockchain-voting-system",
-    description: "Secure voting system built on blockchain technology",
-    language: "Solidity",
-    stars: 89,
-    forks: 15,
-    updatedAt: "2 weeks ago",
-    isPrivate: false,
-  },
-  {
-    id: "5",
-    name: "personal-portfolio",
-    description: "My personal portfolio website showcasing projects and skills",
-    language: "JavaScript",
-    stars: 12,
-    forks: 3,
-    updatedAt: "1 month ago",
-    isPrivate: false,
-  },
-  {
-    id: "6",
-    name: "react-component-library",
-    description:
-      "A collection of reusable React components with Storybook documentation",
-    language: "TypeScript",
-    stars: 67,
-    forks: 14,
-    updatedAt: "5 days ago",
-    isPrivate: false,
-  },
-  {
-    id: "7",
-    name: "data-visualization-dashboard",
-    description:
-      "Interactive data visualization dashboard using D3.js and React",
-    language: "JavaScript",
-    stars: 41,
-    forks: 9,
-    updatedAt: "2 weeks ago",
-    isPrivate: false,
-  },
-  {
-    id: "8",
-    name: "mobile-fitness-app",
-    description:
-      "React Native fitness tracking application with health metrics",
-    language: "TypeScript",
-    stars: 28,
-    forks: 6,
-    updatedAt: "3 weeks ago",
-    isPrivate: true,
-  },
-];
-
-// Language color mapping
-const languageColors = {
-  TypeScript: "bg-blue-500",
-  JavaScript: "bg-yellow-500",
+const languageColors: { [key: string]: string } = {
+  JavaScript: "bg-yellow-400",
+  TypeScript: "bg-blue-400",
+  HTML: "bg-orange-500",
+  CSS: "bg-purple-500",
   Python: "bg-green-500",
-  Solidity: "bg-purple-500",
-  Ruby: "bg-red-500",
-  Go: "bg-cyan-500",
-  Rust: "bg-orange-500",
-  Java: "bg-amber-500",
-  Kotlin: "bg-pink-500",
-  Swift: "bg-indigo-500",
-  default: "bg-gray-500",
-} as const;
+  Java: "bg-red-500",
+  Ruby: "bg-red-600",
+  Go: "bg-blue-300",
+  PHP: "bg-indigo-400",
+  Swift: "bg-orange-400",
+  Kotlin: "bg-purple-400",
+  Rust: "bg-brown-500",
+  C: "bg-gray-500",
+  "C++": "bg-pink-500",
+  "C#": "bg-green-400",
+  default: "bg-gray-400",
+};
 
-type LanguageColorType = typeof languageColors;
+// Define a type for the repository data
+interface Repository {
+  id: number;
+  name: string;
+  full_name: string;
+  html_url: string;
+  description: string | null;
+  stargazers_count: number;
+  forks_count: number;
+  updated_at: string;
+  language: string | null;
+  private: boolean;
+}
+
+// Helper function to format dates
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+
+  // If it's less than a day old, show "X hours ago"
+  const now = new Date();
+  const diffInHours = Math.floor(
+    (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+  );
+
+  if (diffInHours < 24) {
+    return diffInHours === 0 ? "Just now" : `${diffInHours}h ago`;
+  }
+
+  // If it's less than a week old, show "X days ago"
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) {
+    return `${diffInDays}d ago`;
+  }
+
+  // Otherwise show month and day
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
 export default function DashboardPage() {
   const { data: session, status } = useSession(); // Get session and status
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true); // Initialize loading to true
+  const [loadingUser, setLoadingUser] = useState(true); // Initialize loading to true
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [loadingRepos, setLoadingRepos] = useState(false);
+  const [errorRepos, setErrorRepos] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [sortBy, setSortBy] = useState("updated");
@@ -160,7 +113,7 @@ export default function DashboardPage() {
   // Effect to update user and loading state based on session status
   useEffect(() => {
     if (status === "loading") {
-      setLoading(true);
+      setLoadingUser(true);
     } else {
       if (session?.user) {
         setUser(session.user);
@@ -169,38 +122,80 @@ export default function DashboardPage() {
         // Optional: Redirect if not authenticated and not loading
         // redirect("/");
       }
-      setLoading(false);
+      setLoadingUser(false);
     }
   }, [session, status]);
 
-  if (loading) {
+  // Effect to fetch repositories
+  useEffect(() => {
+    // Only fetch if the user is authenticated
+    if (status === "authenticated") {
+      setLoadingRepos(true);
+      setErrorRepos(null);
+      fetch("/api/github/repos")
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then((data) => {
+          setRepositories(data);
+          setLoadingRepos(false);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch repositories:", error);
+          setErrorRepos(`Failed to load repositories: ${error.message}`);
+          setLoadingRepos(false);
+        });
+    }
+  }, [status]); // Re-run when authentication status changes
+
+  if (loadingUser) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+        <div className="text-white">Loading user...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    // Or a login prompt, or redirect handled by middleware/routing
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="text-white">Please log in to view your dashboard.</div>
       </div>
     );
   }
 
   // Filter repositories based on search query and active tab
-  const filteredRepos = mockRepositories.filter((repo) => {
-    const matchesSearch =
-      repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      repo.description.toLowerCase().includes(searchQuery.toLowerCase());
-
-    if (activeTab === "all") return matchesSearch;
-    if (activeTab === "public") return matchesSearch && !repo.isPrivate;
-    if (activeTab === "private") return matchesSearch && repo.isPrivate;
-
-    return matchesSearch;
-  });
+  const filteredRepositories = repositories
+    .filter((repo) =>
+      repo.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter((repo) => {
+      if (activeTab === "all") return true;
+      if (activeTab === "public") return !repo.private;
+      if (activeTab === "private") return repo.private;
+      return true;
+    });
 
   // Sort repositories
-  const sortedRepos = [...filteredRepos].sort((a, b) => {
-    if (sortBy === "stars") return b.stars - a.stars;
-    if (sortBy === "forks") return b.forks - a.forks;
-    if (sortBy === "name") return a.name.localeCompare(b.name);
-    // Default: sort by updated
-    return 0; // In a real app, we'd parse dates
+  const sortedRepositories = [...filteredRepositories].sort((a, b) => {
+    switch (sortBy) {
+      case "updated":
+        return (
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        );
+      case "stars":
+        return b.stargazers_count - a.stargazers_count;
+      case "forks":
+        return b.forks_count - a.forks_count;
+      case "name":
+        return a.name.localeCompare(b.name);
+      default:
+        return 0;
+    }
   });
 
   return (
@@ -236,7 +231,7 @@ export default function DashboardPage() {
               variant="outline"
               size="sm"
               className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-              onClick={() => signOut({ redirectTo: "/" })}
+              onClick={() => userSignOut()}
             >
               <LogOut className="h-4 w-4 mr-2" />
               Sign out
@@ -342,119 +337,159 @@ export default function DashboardPage() {
           </Tabs>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedRepos.map((repo) => (
-            <Card
-              key={repo.id}
-              className="bg-zinc-900/70 border-zinc-800 hover:border-blue-500/50 transition-all duration-300 overflow-hidden group"
+        {loadingRepos && (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        )}
+
+        {errorRepos && (
+          <div className="text-red-400 bg-red-900/20 border border-red-800 p-4 rounded-lg mb-6">
+            <p className="font-semibold">Error loading repositories:</p>
+            <p>{errorRepos}</p>
+            <Button
+              onClick={() => {
+                setLoadingRepos(true);
+                setErrorRepos(null);
+                fetch("/api/github/repos")
+                  .then((res) =>
+                    res.ok
+                      ? res.json()
+                      : Promise.reject(
+                          new Error(`HTTP error! Status: ${res.status}`)
+                        )
+                  )
+                  .then((data) => {
+                    setRepositories(data);
+                    setLoadingRepos(false);
+                  })
+                  .catch((err) => {
+                    setErrorRepos(err.message);
+                    setLoadingRepos(false);
+                  });
+              }}
+              className="mt-2 bg-red-600 hover:bg-red-700"
             >
-              <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-blue-600 to-purple-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+              Retry
+            </Button>
+          </div>
+        )}
 
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center">
-                      <BookOpenIcon className="h-4 w-4 mr-2 text-blue-400" />
-                      <CardTitle className="text-xl font-bold text-blue-400 group-hover:text-blue-300 transition-colors">
-                        {repo.name}
-                      </CardTitle>
+        {!loadingRepos && !errorRepos && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedRepositories.map((repo) => (
+              <Card
+                key={repo.id}
+                className="bg-zinc-900/70 border-zinc-800 hover:border-blue-500/50 transition-all duration-300 overflow-hidden group"
+              >
+                <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-blue-600 to-purple-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center">
+                        <BookOpenIcon className="h-4 w-4 mr-2 text-blue-400" />
+                        <CardTitle className="text-xl font-bold text-blue-400 group-hover:text-blue-300 transition-colors">
+                          {repo.name}
+                        </CardTitle>
+                      </div>
+                      <CardDescription className="text-zinc-400 line-clamp-2">
+                        {repo.description}
+                      </CardDescription>
                     </div>
-                    <CardDescription className="text-zinc-400 line-clamp-2">
-                      {repo.description}
-                    </CardDescription>
-                  </div>
-                  {repo.isPrivate ? (
-                    <Badge
-                      variant="outline"
-                      className="bg-zinc-800 text-zinc-400 border-zinc-700 flex items-center"
-                    >
-                      <LockIcon className="h-3 w-3 mr-1" />
-                      Private
-                    </Badge>
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      className="bg-zinc-800 text-zinc-400 border-zinc-700 flex items-center"
-                    >
-                      <EyeIcon className="h-3 w-3 mr-1" />
-                      Public
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-
-              <CardContent className="pb-2">
-                <div className="flex flex-wrap gap-4 text-sm text-zinc-400">
-                  {repo.language && (
-                    <div className="flex items-center">
-                      <div
-                        className={`h-3 w-3 rounded-full mr-1.5 ${
-                          languageColors[
-                            repo.language as keyof typeof languageColors
-                          ] || languageColors.default
-                        }`}
-                      ></div>
-                      {repo.language}
-                    </div>
-                  )}
-                  <div className="flex items-center">
-                    <StarIcon className="h-4 w-4 mr-1 text-yellow-500" />
-                    {repo.stars}
-                  </div>
-                  <div className="flex items-center">
-                    <GitForkIcon className="h-4 w-4 mr-1 text-green-500" />
-                    {repo.forks}
-                  </div>
-                  <div className="flex items-center">
-                    <ClockIcon className="h-4 w-4 mr-1 text-blue-500" />
-                    {repo.updatedAt}
-                  </div>
-                </div>
-              </CardContent>
-
-              <Separator className="bg-zinc-800 my-2" />
-
-              <CardFooter className="pt-2">
-                <div className="w-full space-y-2">
-                  <div className="text-xs text-zinc-500 mb-1">
-                    Generate post for:
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Link href={`/generate/${repo.id}?platform=linkedin`}>
-                      <Button
+                    {repo.private ? (
+                      <Badge
                         variant="outline"
-                        className="w-full bg-zinc-800/50 border-zinc-700 hover:border-blue-500 hover:bg-blue-950/30 text-zinc-300 hover:text-blue-300 transition-all"
+                        className="bg-zinc-800 text-zinc-400 border-zinc-700 flex items-center"
                       >
-                        <LinkedinIcon className="h-4 w-4 mr-2 text-blue-500" />
-                        LinkedIn
+                        <LockIcon className="h-3 w-3 mr-1" />
+                        Private
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="outline"
+                        className="bg-zinc-800 text-zinc-400 border-zinc-700 flex items-center"
+                      >
+                        <EyeIcon className="h-3 w-3 mr-1" />
+                        Public
+                      </Badge>
+                    )}
+                  </div>
+                </CardHeader>
+
+                <CardContent className="pb-2">
+                  <div className="flex flex-wrap gap-4 text-sm text-zinc-400">
+                    {repo.language && (
+                      <div className="flex items-center">
+                        <div
+                          className={`h-3 w-3 rounded-full mr-1.5 ${
+                            languageColors[
+                              repo.language as keyof typeof languageColors
+                            ] || languageColors.default
+                          }`}
+                        ></div>
+                        {repo.language}
+                      </div>
+                    )}
+                    <div className="flex items-center">
+                      <StarIcon className="h-4 w-4 mr-1 text-yellow-500" />
+                      {repo.stargazers_count}
+                    </div>
+                    <div className="flex items-center">
+                      <GitForkIcon className="h-4 w-4 mr-1 text-green-500" />
+                      {repo.forks_count}
+                    </div>
+                    <div className="flex items-center">
+                      <ClockIcon className="h-4 w-4 mr-1 text-blue-500" />
+                      {formatDate(repo.updated_at)}
+                    </div>
+                  </div>
+                </CardContent>
+
+                <Separator className="bg-zinc-800 my-2" />
+
+                <CardFooter className="pt-2">
+                  <div className="w-full space-y-2">
+                    <div className="text-xs text-zinc-500 mb-1">
+                      Generate post for:
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link href={`/generate/${repo.id}?platform=linkedin`}>
+                        <Button
+                          variant="outline"
+                          className="w-full bg-zinc-800/50 border-zinc-700 hover:border-blue-500 hover:bg-blue-950/30 text-zinc-300 hover:text-blue-300 transition-all"
+                        >
+                          <LinkedinIcon className="h-4 w-4 mr-2 text-blue-500" />
+                          LinkedIn
+                        </Button>
+                      </Link>
+                      <Link href={`/generate/${repo.id}?platform=twitter`}>
+                        <Button
+                          variant="outline"
+                          className="w-full bg-zinc-800/50 border-zinc-700 hover:border-blue-500 hover:bg-blue-950/30 text-zinc-300 hover:text-blue-300 transition-all"
+                        >
+                          <TwitterIcon className="h-4 w-4 mr-2 text-blue-400" />
+                          X / Twitter
+                        </Button>
+                      </Link>
+                    </div>
+                    <Link href={`/repo/${repo.id}`}>
+                      <Button
+                        variant="ghost"
+                        className="w-full text-xs text-zinc-500 hover:text-zinc-300"
+                      >
+                        View Repository Details
+                        <ArrowRightIcon className="h-3 w-3 ml-1" />
                       </Button>
                     </Link>
-                    <Link href={`/generate/${repo.id}?platform=twitter`}>
-                      <Button
-                        variant="outline"
-                        className="w-full bg-zinc-800/50 border-zinc-700 hover:border-blue-500 hover:bg-blue-950/30 text-zinc-300 hover:text-blue-300 transition-all"
-                      >
-                        <TwitterIcon className="h-4 w-4 mr-2 text-blue-400" />X
-                        / Twitter
-                      </Button>
-                    </Link>
                   </div>
-                  <Link href={`/repo/${repo.id}`}>
-                    <Button
-                      variant="ghost"
-                      className="w-full text-xs text-zinc-500 hover:text-zinc-300"
-                    >
-                      View Repository Details
-                      <ArrowRightIcon className="h-3 w-3 ml-1" />
-                    </Button>
-                  </Link>
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
 
-        {sortedRepos.length === 0 && (
+        {!loadingRepos && !errorRepos && sortedRepositories.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 px-4 border border-dashed border-zinc-800 rounded-lg bg-zinc-900/30 text-center">
             <CodeIcon className="h-12 w-12 text-zinc-700 mb-4" />
             <h3 className="text-xl font-medium text-zinc-300 mb-2">
@@ -463,9 +498,24 @@ export default function DashboardPage() {
             <p className="text-zinc-500 max-w-md mb-6">
               {searchQuery
                 ? `No repositories matching "${searchQuery}" were found. Try a different search term.`
-                : "Connect your GitHub account to see your repositories here."}
+                : "We couldn't find any repositories in your GitHub account."}
             </p>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => {
+                setLoadingRepos(true);
+                fetch("/api/github/repos")
+                  .then((res) => res.json())
+                  .then((data) => {
+                    setRepositories(data);
+                    setLoadingRepos(false);
+                  })
+                  .catch((err) => {
+                    console.error(err);
+                    setLoadingRepos(false);
+                  });
+              }}
+            >
               Refresh Repositories
             </Button>
           </div>
