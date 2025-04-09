@@ -206,7 +206,7 @@ export default function GeneratePostPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-zinc-950 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-b from-zinc-950 to-black flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-10 w-10 animate-spin mx-auto text-blue-500 mb-4" />
           <p className="text-white text-lg">Analyzing repository...</p>
@@ -218,7 +218,7 @@ export default function GeneratePostPage() {
 
   if (!repository) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-zinc-950 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-b from-zinc-950 to-black flex items-center justify-center">
         <div className="text-center text-white">
           <p className="text-xl mb-4">Repository not found.</p>
           <Button
@@ -235,7 +235,7 @@ export default function GeneratePostPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-950 to-black text-white">
+    <div className="min-h-screen bg-linear-to-b from-zinc-950 to-black text-white">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -432,7 +432,7 @@ export default function GeneratePostPage() {
                   <TabsContent value="preview" className="mt-0">
                     <div className="min-h-[400px] p-6 bg-zinc-800 border border-zinc-700 rounded-md">
                       <div className="flex items-center space-x-3 mb-4">
-                        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                        <div className="h-12 w-12 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                           <span className="font-bold">JD</span>
                         </div>
                         <div>

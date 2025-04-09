@@ -152,11 +152,11 @@ export default function DashboardPage() {
   })
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-950 to-black text-white">
+    <div className="min-h-screen bg-linear-to-b from-zinc-950 to-black text-white">
       <div className="container mx-auto px-4 py-8">
         {/* Header with gradient border bottom */}
         <div className="relative pb-6 mb-8">
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-zinc-700 to-transparent"></div>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div className="mb-4 md:mb-0">
               <h1 className="text-3xl font-bold">Your GitHub Repositories</h1>
@@ -235,7 +235,7 @@ export default function DashboardPage() {
               key={repo.id}
               className="bg-zinc-900/70 border-zinc-800 hover:border-blue-500/50 transition-all duration-300 overflow-hidden group"
             >
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-purple-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+              <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-blue-600 to-purple-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
 
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">

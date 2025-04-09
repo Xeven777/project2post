@@ -101,8 +101,8 @@ export default function LandingPage() {
       {/* Animated background gradient */}
       <div className="fixed inset-0 z-0">
         <div className="absolute inset-0 bg-black opacity-90"></div>
-        <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 blur-[120px] transform -translate-y-1/2"></div>
-        <div className="absolute bottom-0 left-0 right-0 h-[500px] bg-gradient-to-r from-emerald-600/20 via-blue-600/20 to-indigo-600/20 blur-[120px] transform translate-y-1/2"></div>
+        <div className="absolute top-0 left-0 right-0 h-[500px] bg-linear-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 blur-[120px] transform -translate-y-1/2"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-[500px] bg-linear-to-r from-emerald-600/20 via-blue-600/20 to-indigo-600/20 blur-[120px] transform translate-y-1/2"></div>
       </div>
 
       <div className="relative z-10">
@@ -120,7 +120,7 @@ export default function LandingPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-xl bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                   <span className="font-bold text-lg">LP</span>
                 </div>
                 <span className="font-bold text-xl">LinkedPost</span>
@@ -152,13 +152,13 @@ export default function LandingPage() {
                 variants={staggerContainer}
               >
                 <motion.div variants={fadeIn}>
-                  <span className="px-3 py-1 text-sm font-medium rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 text-blue-400">
+                  <span className="px-3 py-1 text-sm font-medium rounded-full bg-linear-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 text-blue-400">
                     Powered by AI
                   </span>
                 </motion.div>
                 <motion.h1 className="text-4xl md:text-6xl font-bold leading-tight" variants={slideIn}>
                   Transform Your{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+                  <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-purple-500">
                     GitHub Projects
                   </span>{" "}
                   Into Engaging LinkedIn Content
@@ -172,7 +172,7 @@ export default function LandingPage() {
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button
                         size="lg"
-                        className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-700/20"
+                        className="w-full sm:w-auto bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-700/20"
                       >
                         <GithubIcon className="mr-2 h-5 w-5" />
                         Connect with GitHub
@@ -201,7 +201,7 @@ export default function LandingPage() {
                 <div className="relative w-full max-w-md mx-auto">
                   {/* Animated glow effect */}
                   <motion.div
-                    className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 opacity-75 blur-lg"
+                    className="absolute -inset-0.5 rounded-2xl bg-linear-to-r from-blue-600 to-purple-600 opacity-75 blur-lg"
                     animate={{
                       background: [
                         "linear-gradient(to right, rgb(37, 99, 235), rgb(147, 51, 234))",
@@ -213,10 +213,10 @@ export default function LandingPage() {
                     transition={{ duration: 10, repeat: Number.POSITIVE_INFINITY }}
                   />
 
-                  <div className="relative rounded-2xl bg-zinc-900/90 border border-white/10 p-5 backdrop-blur-sm">
+                  <div className="relative rounded-2xl bg-zinc-900/90 border border-white/10 p-5 backdrop-blur-xs">
                     <div className="space-y-4">
                       <div className="flex items-center space-x-2">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                           <span className="font-bold">JD</span>
                         </div>
                         <div>
@@ -344,7 +344,7 @@ export default function LandingPage() {
               animate={featuresInView ? "visible" : "hidden"}
             >
               <motion.div className="relative group" variants={scaleUp}>
-                <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-400 opacity-0 group-hover:opacity-70 transition-opacity duration-300 blur-sm"></div>
+                <div className="absolute -inset-0.5 rounded-2xl bg-linear-to-br from-blue-600 to-blue-400 opacity-0 group-hover:opacity-70 transition-opacity duration-300 blur-xs"></div>
                 <div className="relative bg-zinc-900 p-8 rounded-2xl border border-zinc-800 group-hover:border-blue-500/50 transition-colors duration-300 h-full">
                   <div className="h-14 w-14 rounded-xl bg-blue-600/20 text-blue-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <GithubIcon className="h-7 w-7" />
@@ -359,7 +359,7 @@ export default function LandingPage() {
               </motion.div>
 
               <motion.div className="relative group" variants={scaleUp}>
-                <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-400 opacity-0 group-hover:opacity-70 transition-opacity duration-300 blur-sm"></div>
+                <div className="absolute -inset-0.5 rounded-2xl bg-linear-to-br from-purple-600 to-purple-400 opacity-0 group-hover:opacity-70 transition-opacity duration-300 blur-xs"></div>
                 <div className="relative bg-zinc-900 p-8 rounded-2xl border border-zinc-800 group-hover:border-purple-500/50 transition-colors duration-300 h-full">
                   <div className="h-14 w-14 rounded-xl bg-purple-600/20 text-purple-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <Code className="h-7 w-7" />
@@ -374,7 +374,7 @@ export default function LandingPage() {
               </motion.div>
 
               <motion.div className="relative group" variants={scaleUp}>
-                <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-br from-pink-600 to-pink-400 opacity-0 group-hover:opacity-70 transition-opacity duration-300 blur-sm"></div>
+                <div className="absolute -inset-0.5 rounded-2xl bg-linear-to-br from-pink-600 to-pink-400 opacity-0 group-hover:opacity-70 transition-opacity duration-300 blur-xs"></div>
                 <div className="relative bg-zinc-900 p-8 rounded-2xl border border-zinc-800 group-hover:border-pink-500/50 transition-colors duration-300 h-full">
                   <div className="h-14 w-14 rounded-xl bg-pink-600/20 text-pink-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <Zap className="h-7 w-7" />
@@ -426,11 +426,11 @@ export default function LandingPage() {
                           className="absolute inset-0"
                         >
                           <div className="relative">
-                            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-blue-600/30 via-purple-600/30 to-pink-600/30 opacity-70 blur-lg"></div>
-                            <div className="relative bg-zinc-900/90 backdrop-blur-sm p-8 rounded-2xl border border-white/10">
+                            <div className="absolute -inset-1 rounded-2xl bg-linear-to-r from-blue-600/30 via-purple-600/30 to-pink-600/30 opacity-70 blur-lg"></div>
+                            <div className="relative bg-zinc-900/90 backdrop-blur-xs p-8 rounded-2xl border border-white/10">
                               <div className="flex flex-col md:flex-row md:items-center gap-6">
-                                <div className="flex-shrink-0">
-                                  <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 p-0.5">
+                                <div className="shrink-0">
+                                  <div className="h-16 w-16 rounded-full bg-linear-to-br from-blue-500 to-purple-600 p-0.5">
                                     <div className="h-full w-full rounded-full overflow-hidden">
                                       <img
                                         src={testimonial.avatar || "/placeholder.svg"}
@@ -463,7 +463,7 @@ export default function LandingPage() {
                     onClick={() => setCurrentTestimonial(index)}
                     className={`h-2 w-2 rounded-full transition-all duration-300 ${
                       index === currentTestimonial
-                        ? "w-8 bg-gradient-to-r from-blue-500 to-purple-500"
+                        ? "w-8 bg-linear-to-r from-blue-500 to-purple-500"
                         : "bg-zinc-600 hover:bg-zinc-500"
                     }`}
                     aria-label={`Go to testimonial ${index + 1}`}
@@ -484,8 +484,8 @@ export default function LandingPage() {
               transition={{ duration: 0.6 }}
             >
               <div className="relative">
-                <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-blue-600/50 via-purple-600/50 to-pink-600/50 opacity-70 blur-xl"></div>
-                <div className="relative bg-zinc-900/90 backdrop-blur-sm p-12 rounded-3xl border border-white/10">
+                <div className="absolute -inset-1 rounded-3xl bg-linear-to-r from-blue-600/50 via-purple-600/50 to-pink-600/50 opacity-70 blur-xl"></div>
+                <div className="relative bg-zinc-900/90 backdrop-blur-xs p-12 rounded-3xl border border-white/10">
                   <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Showcase Your Projects?</h2>
                   <p className="text-zinc-300 text-lg mb-8 max-w-2xl mx-auto">
                     Connect your GitHub account now and start generating professional LinkedIn posts that highlight your
@@ -495,7 +495,7 @@ export default function LandingPage() {
                     <Link href="/auth/github">
                       <Button
                         size="lg"
-                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-700/20 text-lg px-8"
+                        className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-700/20 text-lg px-8"
                       >
                         <GithubIcon className="mr-2 h-5 w-5" />
                         Get Started for Free
@@ -509,7 +509,7 @@ export default function LandingPage() {
           </div>
 
           {/* Animated background elements */}
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-gradient-to-r from-blue-600/10 to-purple-600/10 blur-[100px] opacity-50"></div>
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-linear-to-r from-blue-600/10 to-purple-600/10 blur-[100px] opacity-50"></div>
         </motion.div>
 
         {/* Footer */}
@@ -523,7 +523,7 @@ export default function LandingPage() {
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="mb-8 md:mb-0 text-center md:text-left">
                 <div className="flex items-center justify-center md:justify-start space-x-2 mb-2">
-                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  <div className="h-8 w-8 rounded-lg bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                     <span className="font-bold">LP</span>
                   </div>
                   <span className="font-bold text-xl">LinkedPost</span>
