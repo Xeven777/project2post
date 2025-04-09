@@ -1,11 +1,25 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { GithubIcon, ArrowRight, Code, Share2, Zap } from "lucide-react"
-import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion"
-import { useMobile } from "@/hooks/use-mobile"
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  GithubIcon,
+  ArrowRight,
+  Code,
+  Share2,
+  Zap,
+  LogOut,
+} from "lucide-react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useInView,
+  AnimatePresence,
+} from "framer-motion";
+import { useMobile } from "@/hooks/use-mobile";
+import { auth, signOut } from "@/auth";
 
 // Testimonial data
 const testimonials = [
@@ -33,7 +47,7 @@ const testimonials = [
     content:
       "I maintain several open source projects, and LinkedPost helps me announce updates in a professional way. The integration with GitHub is seamless and intuitive.",
   },
-]
+];
 
 // Animation variants
 const fadeIn = {
@@ -43,7 +57,7 @@ const fadeIn = {
     y: 0,
     transition: { duration: 0.6 },
   },
-}
+};
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -53,7 +67,7 @@ const staggerContainer = {
       staggerChildren: 0.2,
     },
   },
-}
+};
 
 const slideIn = {
   hidden: { x: -60, opacity: 0 },
@@ -62,7 +76,7 @@ const slideIn = {
     opacity: 1,
     transition: { type: "spring", stiffness: 100, damping: 15 },
   },
-}
+};
 
 const scaleUp = {
   hidden: { scale: 0.8, opacity: 0 },
@@ -71,30 +85,50 @@ const scaleUp = {
     opacity: 1,
     transition: { duration: 0.6 },
   },
-}
+};
 
 export default function LandingPage() {
-  const isMobile = useMobile()
-  const { scrollY } = useScroll()
-  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0])
-  const heroScale = useTransform(scrollY, [0, 300], [1, 0.9])
+  const isMobile = useMobile();
+  const { scrollY } = useScroll();
+  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0]);
+  const heroScale = useTransform(scrollY, [0, 300], [1, 0.9]);
 
-  const featuresRef = useRef(null)
-  const testimonialRef = useRef(null)
-  const ctaRef = useRef(null)
+  const featuresRef = useRef(null);
+  const testimonialRef = useRef(null);
+  const ctaRef = useRef(null);
 
-  const featuresInView = useInView(featuresRef, { once: true, amount: 0.2 })
-  const testimonialInView = useInView(testimonialRef, { once: true, amount: 0.2 })
-  const ctaInView = useInView(ctaRef, { once: true, amount: 0.5 })
+  const featuresInView = useInView(featuresRef, { once: true, amount: 0.2 });
+  const testimonialInView = useInView(testimonialRef, {
+    once: true,
+    amount: 0.2,
+  });
+  const ctaInView = useInView(ctaRef, { once: true, amount: 0.5 });
 
-  const [currentTestimonial, setCurrentTestimonial] = useState(0)
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [])
+      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    async function fetchSession() {
+      try {
+        const session = await auth();
+        setUser(session?.user || null);
+      } catch (error) {
+        console.error("Error fetching session:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchSession();
+  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
@@ -126,13 +160,66 @@ export default function LandingPage() {
                 <span className="font-bold text-xl">LinkedPost</span>
               </motion.div>
               <div className="flex items-center space-x-4">
-                <Link href="/auth/github">
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button variant="outline" className="text-white border-white/20 bg-white/5 hover:bg-white/10">
-                      Login
-                    </Button>
-                  </motion.div>
-                </Link>
+                {loading ? (
+                  <div className="h-10 w-20 bg-white/5 rounded animate-pulse"></div>
+                ) : user ? (
+                  <div className="flex items-center space-x-4">
+                    <Link href="/dashboard">
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Button
+                          variant="outline"
+                          className="text-white border-white/20 bg-white/5 hover:bg-white/10"
+                        >
+                          Dashboard
+                        </Button>
+                      </motion.div>
+                    </Link>
+                    <div className="flex items-center space-x-2">
+                      <div className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden">
+                        {user.image ? (
+                          <img
+                            src={user.image}
+                            alt={user.name || "User"}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-sm">
+                            {user.name?.charAt(0) || "U"}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-sm hidden md:inline">
+                        {user.name}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-zinc-400 hover:text-white"
+                        onClick={() => signOut({ redirectTo: "/" })}
+                        title="Sign out"
+                      >
+                        <LogOut className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Link href="/auth/github">
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Button
+                        variant="outline"
+                        className="text-white border-white/20 bg-white/5 hover:bg-white/10"
+                      >
+                        Login
+                      </Button>
+                    </motion.div>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -156,30 +243,63 @@ export default function LandingPage() {
                     Powered by AI
                   </span>
                 </motion.div>
-                <motion.h1 className="text-4xl md:text-6xl font-bold leading-tight" variants={slideIn}>
+                <motion.h1
+                  className="text-4xl md:text-6xl font-bold leading-tight"
+                  variants={slideIn}
+                >
                   Transform Your{" "}
                   <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-purple-500">
                     GitHub Projects
                   </span>{" "}
                   Into Engaging LinkedIn Content
                 </motion.h1>
-                <motion.p className="text-lg md:text-xl text-zinc-300 max-w-xl" variants={fadeIn}>
-                  Automatically generate professional, attention-grabbing LinkedIn posts that showcase your coding
-                  projects and highlight your technical expertise.
+                <motion.p
+                  className="text-lg md:text-xl text-zinc-300 max-w-xl"
+                  variants={fadeIn}
+                >
+                  Automatically generate professional, attention-grabbing
+                  LinkedIn posts that showcase your coding projects and
+                  highlight your technical expertise.
                 </motion.p>
-                <motion.div className="pt-4 flex flex-col sm:flex-row gap-4" variants={fadeIn}>
-                  <Link href="/auth/github">
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button
-                        size="lg"
-                        className="w-full sm:w-auto bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-700/20"
+                <motion.div
+                  className="pt-4 flex flex-col sm:flex-row gap-4"
+                  variants={fadeIn}
+                >
+                  {!user ? (
+                    <Link href="/auth/github">
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
-                        <GithubIcon className="mr-2 h-5 w-5" />
-                        Connect with GitHub
-                      </Button>
-                    </motion.div>
-                  </Link>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          size="lg"
+                          className="w-full sm:w-auto bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-700/20"
+                        >
+                          <GithubIcon className="mr-2 h-5 w-5" />
+                          Connect with GitHub
+                        </Button>
+                      </motion.div>
+                    </Link>
+                  ) : (
+                    <Link href="/dashboard">
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Button
+                          size="lg"
+                          className="w-full sm:w-auto bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-700/20"
+                        >
+                          Go to Dashboard
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </motion.div>
+                    </Link>
+                  )}
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
                     <Button
                       size="lg"
                       variant="outline"
@@ -210,7 +330,10 @@ export default function LandingPage() {
                         "linear-gradient(to right, rgb(37, 99, 235), rgb(147, 51, 234))",
                       ],
                     }}
-                    transition={{ duration: 10, repeat: Number.POSITIVE_INFINITY }}
+                    transition={{
+                      duration: 10,
+                      repeat: Number.POSITIVE_INFINITY,
+                    }}
                   />
 
                   <div className="relative rounded-2xl bg-zinc-900/90 border border-white/10 p-5 backdrop-blur-xs">
@@ -221,13 +344,23 @@ export default function LandingPage() {
                         </div>
                         <div>
                           <div className="font-semibold">Jane Developer</div>
-                          <div className="text-xs text-zinc-400">Full Stack Developer</div>
+                          <div className="text-xs text-zinc-400">
+                            Full Stack Developer
+                          </div>
                         </div>
                       </div>
                       <div className="text-sm">
-                        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-                          🚀 <span className="font-semibold">Just launched:</span> My latest project{" "}
-                          <span className="font-semibold text-blue-400">DevConnect</span>
+                        <motion.p
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.5 }}
+                        >
+                          🚀{" "}
+                          <span className="font-semibold">Just launched:</span>{" "}
+                          My latest project{" "}
+                          <span className="font-semibold text-blue-400">
+                            DevConnect
+                          </span>
                         </motion.p>
                         <motion.p
                           className="mt-2"
@@ -235,8 +368,9 @@ export default function LandingPage() {
                           animate={{ opacity: 1 }}
                           transition={{ duration: 0.5, delay: 0.2 }}
                         >
-                          A platform that helps developers find collaborators for open-source projects. Built with
-                          React, Node.js, and MongoDB.
+                          A platform that helps developers find collaborators
+                          for open-source projects. Built with React, Node.js,
+                          and MongoDB.
                         </motion.p>
                         <motion.p
                           className="mt-2"
@@ -280,7 +414,10 @@ export default function LandingPage() {
                         animate={{
                           opacity: [1, 0, 1],
                         }}
-                        transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY }}
+                        transition={{
+                          duration: 1,
+                          repeat: Number.POSITIVE_INFINITY,
+                        }}
                       />
                     </div>
                   </div>
@@ -302,7 +439,11 @@ export default function LandingPage() {
                   animate={{
                     y: [0, 10, 0],
                   }}
-                  transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY, delay: 1 }}
+                  transition={{
+                    duration: 3,
+                    repeat: Number.POSITIVE_INFINITY,
+                    delay: 1,
+                  }}
                 >
                   <Share2 className="h-6 w-6 text-purple-300" />
                 </motion.div>
@@ -331,7 +472,9 @@ export default function LandingPage() {
               animate={featuresInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">How LinkedPost Works</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                How LinkedPost Works
+              </h2>
               <p className="text-zinc-400 max-w-2xl mx-auto">
                 Generate professional LinkedIn posts in three simple steps
               </p>
@@ -353,7 +496,8 @@ export default function LandingPage() {
                     1. Connect with GitHub
                   </h3>
                   <p className="text-zinc-400">
-                    Securely authenticate with your GitHub account to access your repositories, including private ones.
+                    Securely authenticate with your GitHub account to access
+                    your repositories, including private ones.
                   </p>
                 </div>
               </motion.div>
@@ -368,7 +512,8 @@ export default function LandingPage() {
                     2. Select a Repository
                   </h3>
                   <p className="text-zinc-400">
-                    Choose the GitHub project you want to showcase. We'll analyze your README, code, and dependencies.
+                    Choose the GitHub project you want to showcase. We'll
+                    analyze your README, code, and dependencies.
                   </p>
                 </div>
               </motion.div>
@@ -383,8 +528,8 @@ export default function LandingPage() {
                     3. Generate & Share
                   </h3>
                   <p className="text-zinc-400">
-                    Our AI analyzes your project and creates multiple professional LinkedIn post variations ready to
-                    share.
+                    Our AI analyzes your project and creates multiple
+                    professional LinkedIn post variations ready to share.
                   </p>
                 </div>
               </motion.div>
@@ -405,9 +550,12 @@ export default function LandingPage() {
               animate={testimonialInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">What Developers Say</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                What Developers Say
+              </h2>
               <p className="text-zinc-400 max-w-2xl mx-auto">
-                Join hundreds of developers who are showcasing their projects on LinkedIn
+                Join hundreds of developers who are showcasing their projects on
+                LinkedIn
               </p>
             </motion.div>
 
@@ -433,7 +581,10 @@ export default function LandingPage() {
                                   <div className="h-16 w-16 rounded-full bg-linear-to-br from-blue-500 to-purple-600 p-0.5">
                                     <div className="h-full w-full rounded-full overflow-hidden">
                                       <img
-                                        src={testimonial.avatar || "/placeholder.svg"}
+                                        src={
+                                          testimonial.avatar ||
+                                          "/placeholder.svg"
+                                        }
                                         alt={testimonial.name}
                                         className="h-full w-full object-cover"
                                       />
@@ -441,17 +592,23 @@ export default function LandingPage() {
                                   </div>
                                 </div>
                                 <div className="flex-1">
-                                  <p className="text-lg italic text-zinc-300 mb-4">"{testimonial.content}"</p>
+                                  <p className="text-lg italic text-zinc-300 mb-4">
+                                    "{testimonial.content}"
+                                  </p>
                                   <div>
-                                    <h4 className="font-semibold">{testimonial.name}</h4>
-                                    <p className="text-sm text-zinc-400">{testimonial.role}</p>
+                                    <h4 className="font-semibold">
+                                      {testimonial.name}
+                                    </h4>
+                                    <p className="text-sm text-zinc-400">
+                                      {testimonial.role}
+                                    </p>
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
                         </motion.div>
-                      ),
+                      )
                   )}
                 </AnimatePresence>
               </div>
@@ -486,23 +643,43 @@ export default function LandingPage() {
               <div className="relative">
                 <div className="absolute -inset-1 rounded-3xl bg-linear-to-r from-blue-600/50 via-purple-600/50 to-pink-600/50 opacity-70 blur-xl"></div>
                 <div className="relative bg-zinc-900/90 backdrop-blur-xs p-12 rounded-3xl border border-white/10">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Showcase Your Projects?</h2>
+                  <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                    Ready to Showcase Your Projects?
+                  </h2>
                   <p className="text-zinc-300 text-lg mb-8 max-w-2xl mx-auto">
-                    Connect your GitHub account now and start generating professional LinkedIn posts that highlight your
-                    technical expertise.
+                    Connect your GitHub account now and start generating
+                    professional LinkedIn posts that highlight your technical
+                    expertise.
                   </p>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Link href="/auth/github">
-                      <Button
-                        size="lg"
-                        className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-700/20 text-lg px-8"
-                      >
-                        <GithubIcon className="mr-2 h-5 w-5" />
-                        Get Started for Free
-                      </Button>
-                    </Link>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {!user ? (
+                      <Link href="/auth/github">
+                        <Button
+                          size="lg"
+                          className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-700/20 text-lg px-8"
+                        >
+                          <GithubIcon className="mr-2 h-5 w-5" />
+                          Get Started for Free
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Link href="/dashboard">
+                        <Button
+                          size="lg"
+                          className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-700/20 text-lg px-8"
+                        >
+                          Go to Dashboard
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </Link>
+                    )}
                   </motion.div>
-                  <p className="text-zinc-500 text-sm mt-4">No credit card required. Connect in seconds.</p>
+                  <p className="text-zinc-500 text-sm mt-4">
+                    No credit card required. Connect in seconds.
+                  </p>
                 </div>
               </div>
             </motion.div>
@@ -528,64 +705,99 @@ export default function LandingPage() {
                   </div>
                   <span className="font-bold text-xl">LinkedPost</span>
                 </div>
-                <p className="text-zinc-400 text-sm">© 2025 LinkedPost. All rights reserved.</p>
+                <p className="text-zinc-400 text-sm">
+                  © 2025 LinkedPost. All rights reserved.
+                </p>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-12">
                 <div>
-                  <h3 className="font-semibold mb-3 text-sm text-zinc-300">Product</h3>
+                  <h3 className="font-semibold mb-3 text-sm text-zinc-300">
+                    Product
+                  </h3>
                   <ul className="space-y-2 text-sm">
                     <li>
-                      <a href="#" className="text-zinc-400 hover:text-white transition-colors">
+                      <a
+                        href="#"
+                        className="text-zinc-400 hover:text-white transition-colors"
+                      >
                         Features
                       </a>
                     </li>
                     <li>
-                      <a href="#" className="text-zinc-400 hover:text-white transition-colors">
+                      <a
+                        href="#"
+                        className="text-zinc-400 hover:text-white transition-colors"
+                      >
                         Pricing
                       </a>
                     </li>
                     <li>
-                      <a href="#" className="text-zinc-400 hover:text-white transition-colors">
+                      <a
+                        href="#"
+                        className="text-zinc-400 hover:text-white transition-colors"
+                      >
                         FAQ
                       </a>
                     </li>
                   </ul>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-3 text-sm text-zinc-300">Company</h3>
+                  <h3 className="font-semibold mb-3 text-sm text-zinc-300">
+                    Company
+                  </h3>
                   <ul className="space-y-2 text-sm">
                     <li>
-                      <a href="#" className="text-zinc-400 hover:text-white transition-colors">
+                      <a
+                        href="#"
+                        className="text-zinc-400 hover:text-white transition-colors"
+                      >
                         About
                       </a>
                     </li>
                     <li>
-                      <a href="#" className="text-zinc-400 hover:text-white transition-colors">
+                      <a
+                        href="#"
+                        className="text-zinc-400 hover:text-white transition-colors"
+                      >
                         Blog
                       </a>
                     </li>
                     <li>
-                      <a href="#" className="text-zinc-400 hover:text-white transition-colors">
+                      <a
+                        href="#"
+                        className="text-zinc-400 hover:text-white transition-colors"
+                      >
                         Careers
                       </a>
                     </li>
                   </ul>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-3 text-sm text-zinc-300">Legal</h3>
+                  <h3 className="font-semibold mb-3 text-sm text-zinc-300">
+                    Legal
+                  </h3>
                   <ul className="space-y-2 text-sm">
                     <li>
-                      <a href="#" className="text-zinc-400 hover:text-white transition-colors">
+                      <a
+                        href="#"
+                        className="text-zinc-400 hover:text-white transition-colors"
+                      >
                         Privacy
                       </a>
                     </li>
                     <li>
-                      <a href="#" className="text-zinc-400 hover:text-white transition-colors">
+                      <a
+                        href="#"
+                        className="text-zinc-400 hover:text-white transition-colors"
+                      >
                         Terms
                       </a>
                     </li>
                     <li>
-                      <a href="#" className="text-zinc-400 hover:text-white transition-colors">
+                      <a
+                        href="#"
+                        className="text-zinc-400 hover:text-white transition-colors"
+                      >
                         Cookies
                       </a>
                     </li>
@@ -597,5 +809,5 @@ export default function LandingPage() {
         </motion.footer>
       </div>
     </div>
-  )
+  );
 }
