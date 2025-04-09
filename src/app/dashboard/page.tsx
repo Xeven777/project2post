@@ -31,7 +31,6 @@ import {
   ArrowRightIcon,
   FilterIcon,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -40,6 +39,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { User } from "next-auth";
+import { useSession } from "next-auth/react";
 
 // Mock data for repositories
 const mockRepositories = [
@@ -144,32 +145,33 @@ const languageColors = {
   Kotlin: "bg-pink-500",
   Swift: "bg-indigo-500",
   default: "bg-gray-500",
-};
+} as const;
+
+type LanguageColorType = typeof languageColors;
 
 export default function DashboardPage() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { data: session, status } = useSession(); // Get session and status
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true); // Initialize loading to true
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [sortBy, setSortBy] = useState("updated");
 
+  // Effect to update user and loading state based on session status
   useEffect(() => {
-    async function fetchSession() {
-      try {
-        const session = await auth();
-        if (!session || !session.user) {
-          redirect("/");
-        }
+    if (status === "loading") {
+      setLoading(true);
+    } else {
+      if (session?.user) {
         setUser(session.user);
-      } catch (error) {
-        console.error("Error fetching session:", error);
-      } finally {
-        setLoading(false);
+      } else {
+        setUser(null);
+        // Optional: Redirect if not authenticated and not loading
+        // redirect("/");
       }
+      setLoading(false);
     }
-
-    fetchSession();
-  }, []);
+  }, [session, status]);
 
   if (loading) {
     return (
@@ -387,8 +389,9 @@ export default function DashboardPage() {
                     <div className="flex items-center">
                       <div
                         className={`h-3 w-3 rounded-full mr-1.5 ${
-                          languageColors[repo.language] ||
-                          languageColors.default
+                          languageColors[
+                            repo.language as keyof typeof languageColors
+                          ] || languageColors.default
                         }`}
                       ></div>
                       {repo.language}

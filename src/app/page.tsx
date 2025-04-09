@@ -20,6 +20,8 @@ import {
 } from "framer-motion";
 import { useMobile } from "@/hooks/use-mobile";
 import { auth, signOut } from "@/auth";
+import { User } from "next-auth";
+import { useSession } from "next-auth/react";
 
 // Testimonial data
 const testimonials = [
@@ -105,30 +107,31 @@ export default function LandingPage() {
   const ctaInView = useInView(ctaRef, { once: true, amount: 0.5 });
 
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const { data: session, status } = useSession(); // Use status from useSession
+  const [loading, setLoading] = useState(true); // Keep loading state
 
+  // Effect to update user state based on session and handle loading state
+  useEffect(() => {
+    if (status === "loading") {
+      setLoading(true); // Keep loading if session is loading
+    } else {
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        setUser(null);
+      }
+      setLoading(false); // Set loading to false once session status is determined
+    }
+  }, [session, status]); // Depend on session and status
+
+  // Effect for testimonial rotation
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    async function fetchSession() {
-      try {
-        const session = await auth();
-        setUser(session?.user || null);
-      } catch (error) {
-        console.error("Error fetching session:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchSession();
-  }, []);
+  }, []); // Empty dependency array is correct here
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
