@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState, useEffect } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Loader2,
   Copy,
@@ -19,105 +19,23 @@ import {
   GitBranchIcon,
   CheckIcon,
   Share2Icon,
-} from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-
-// Mock repository data
-const mockRepositories = {
-  "1": {
-    id: "1",
-    name: "project-management-app",
-    description: "A full-stack project management application with real-time updates",
-    language: "TypeScript",
-    readme:
-      "# Project Management App\n\nA real-time project management tool built with React, Node.js, and Socket.IO.\n\n## Features\n\n- Real-time task updates\n- Team collaboration tools\n- File sharing and version control\n- Gantt chart for project timeline\n- Customizable dashboards\n\n## Technologies\n\n- React with TypeScript\n- Node.js and Express\n- MongoDB for data storage\n- Socket.IO for real-time updates\n- AWS S3 for file storage",
-    packageJson: {
-      dependencies: {
-        react: "^18.2.0",
-        next: "^14.0.0",
-        typescript: "^5.0.0",
-        tailwindcss: "^3.3.0",
-        "socket.io-client": "^4.6.0",
-        axios: "^1.3.0",
-        "date-fns": "^2.29.0",
-      },
-    },
-  },
-  "2": {
-    id: "2",
-    name: "e-commerce-platform",
-    description: "Modern e-commerce platform built with Next.js and Stripe integration",
-    language: "JavaScript",
-    readme:
-      "# E-commerce Platform\n\nA modern e-commerce solution with Next.js and Stripe.\n\n## Features\n\n- Product catalog with search and filtering\n- User accounts and order history\n- Secure checkout with Stripe\n- Admin dashboard for inventory management\n- Analytics and reporting\n\n## Technologies\n\n- Next.js for frontend and API routes\n- Stripe for payment processing\n- MongoDB for data storage\n- NextAuth.js for authentication\n- Vercel for deployment",
-    packageJson: {
-      dependencies: {
-        react: "^18.2.0",
-        next: "^14.0.0",
-        stripe: "^12.0.0",
-        "next-auth": "^4.20.0",
-        mongodb: "^5.0.0",
-        swr: "^2.1.0",
-        tailwindcss: "^3.3.0",
-      },
-    },
-  },
-}
-
-// Mock generated posts
-const mockGeneratedPosts = {
-  linkedin: {
-    "1": [
-      {
-        id: "post1",
-        content:
-          "🚀 Excited to share my latest project: Project Management App!\n\nI've built a real-time project management tool that helps teams collaborate more effectively with features like:\n\n✅ Real-time task updates\n✅ Team collaboration tools\n✅ File sharing and version control\n✅ Gantt charts for project timelines\n✅ Customizable dashboards\n\nTech stack:\n• React with TypeScript\n• Node.js and Express\n• MongoDB\n• Socket.IO for real-time updates\n• AWS S3 for file storage\n\nCheck it out: github.com/janedeveloper/project-management-app\n\n#WebDevelopment #React #NodeJS #RealTime #ProjectManagement",
-      },
-      {
-        id: "post2",
-        content:
-          "I'm thrilled to announce the launch of my new Project Management App! 🎉\n\nAfter months of development, I've created a tool that solves the challenges of remote team collaboration through real-time updates and intuitive interfaces.\n\nKey features include real-time task tracking, team collaboration tools, file sharing with version control, and visual project timelines.\n\nBuilt with React, TypeScript, Node.js, MongoDB, and Socket.IO for real-time functionality.\n\nLooking for beta testers and feedback!\n\n#SoftwareDevelopment #ProductLaunch #RemoteWork #ProjectManagement",
-      },
-      {
-        id: "post3",
-        content:
-          "💡 Problem: Team collaboration tools are often disconnected from project management systems.\n\n🛠️ Solution: I built a Project Management App that integrates real-time collaboration with comprehensive project tracking.\n\nThe application features:\n• Instant task updates across team members\n• Integrated file sharing with version history\n• Visual project timelines with Gantt charts\n• Customizable dashboards for different roles\n\nTech stack: React, TypeScript, Node.js, MongoDB, Socket.IO, and AWS S3.\n\nWhat collaboration challenges does your team face?\n\n#ProductDevelopment #TeamCollaboration #SoftwareEngineering #ReactJS",
-      },
-    ],
-    "2": [
-      {
-        id: "post1",
-        content:
-          "🛍️ Just launched: A modern E-commerce Platform built with Next.js!\n\nI've developed a complete e-commerce solution featuring:\n\n✅ Responsive product catalog with search and filtering\n✅ User accounts and order tracking\n✅ Secure checkout with Stripe integration\n✅ Admin dashboard for inventory management\n✅ Detailed analytics and reporting\n\nTech stack:\n• Next.js for frontend and API routes\n• Stripe for payment processing\n• MongoDB for data storage\n• NextAuth.js for authentication\n• Deployed on Vercel\n\n#Ecommerce #WebDevelopment #NextJS #JavaScript #FullStack",
-      },
-    ],
-  },
-  twitter: {
-    "1": [
-      {
-        id: "tweet1",
-        content:
-          "🚀 Just shipped: A real-time project management app built with React, Node.js, and Socket.IO!\n\nFeatures real-time updates, team collaboration, and visual timelines.\n\nCheck it out: github.com/janedeveloper/project-management-app\n\n#WebDev #React #NodeJS",
-      },
-      {
-        id: "tweet2",
-        content:
-          "After months of work, I've launched my Project Management App with real-time collaboration features!\n\nBuilt with React, TypeScript, Node.js, MongoDB, and Socket.IO.\n\nLooking for beta testers! DM if interested.\n\n#SoftwareDev #ProductLaunch",
-      },
-    ],
-    "2": [
-      {
-        id: "tweet1",
-        content:
-          "🛍️ Just launched: E-commerce platform with Next.js and Stripe!\n\nFeatures:\n- Product catalog with search\n- User accounts\n- Secure checkout\n- Admin dashboard\n\n#WebDev #NextJS #JavaScript #Ecommerce",
-      },
-    ],
-  },
-}
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Post tone options
 const toneOptions = [
@@ -126,83 +44,229 @@ const toneOptions = [
   { value: "technical", label: "Technical" },
   { value: "enthusiastic", label: "Enthusiastic" },
   { value: "informative", label: "Informative" },
-]
+];
+
+// Repository type definition
+interface Repository {
+  id: number;
+  name: string;
+  full_name: string;
+  html_url: string;
+  description: string | null;
+  stargazers_count: number;
+  forks_count: number;
+  updated_at: string;
+  language: string | null;
+  private: boolean;
+  default_branch: string;
+  readme?: string;
+  packageJson?: {
+    dependencies: Record<string, string>;
+    devDependencies?: Record<string, string>;
+  };
+}
+
+// Post type definition
+interface Post {
+  id: string;
+  content: string;
+}
 
 export default function GeneratePostPage() {
-  const { repoId } = useParams()
-  const searchParams = useSearchParams()
-  const platform = searchParams.get("platform") || "linkedin"
-  const router = useRouter()
-  const { toast } = useToast()
+  const { repoId } = useParams();
+  const searchParams = useSearchParams();
+  const platform = searchParams.get("platform") || "linkedin";
+  const router = useRouter();
+  const { toast } = useToast();
 
-  const [isLoading, setIsLoading] = useState(true)
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [repository, setRepository] = useState(null)
-  const [generatedPosts, setGeneratedPosts] = useState([])
-  const [selectedPost, setSelectedPost] = useState(null)
-  const [editedPost, setEditedPost] = useState("")
-  const [selectedTone, setSelectedTone] = useState("professional")
-  const [copied, setCopied] = useState(false)
+  const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [repository, setRepository] = useState<Repository | null>(null);
+  const [generatedPosts, setGeneratedPosts] = useState<Post[]>([]);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [editedPost, setEditedPost] = useState("");
+  const [selectedTone, setSelectedTone] = useState("professional");
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate loading repository data
-    setTimeout(() => {
-      const repo = mockRepositories[repoId]
-      if (repo) {
-        setRepository(repo)
-        const posts =
-          platform === "linkedin" ? mockGeneratedPosts.linkedin[repoId] || [] : mockGeneratedPosts.twitter[repoId] || []
+    const fetchRepositoryData = async () => {
+      setIsLoading(true);
+      setError(null);
 
-        setGeneratedPosts(posts)
-        if (posts.length > 0) {
-          setSelectedPost(posts[0])
-          setEditedPost(posts[0].content)
+      try {
+        // Fetch repository details
+        const repoResponse = await fetch(`/api/github/repo/${repoId}`);
+
+        if (!repoResponse.ok) {
+          throw new Error(
+            `Failed to fetch repository: ${repoResponse.statusText}`
+          );
         }
-      }
-      setIsLoading(false)
-    }, 1500)
-  }, [repoId, platform])
 
-  const handleGenerateMore = () => {
-    setIsGenerating(true)
-    // Simulate generating more posts with the selected tone
-    setTimeout(() => {
+        const repoData = await repoResponse.json();
+        setRepository(repoData);
+
+        // After getting repo data, generate an initial post
+        generateInitialPost(repoData);
+      } catch (err) {
+        console.error("Error fetching repository data:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to load repository data"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRepositoryData();
+  }, [repoId]);
+
+  const generateInitialPost = async (repo: Repository) => {
+    setIsGenerating(true);
+    try {
+      const response = await fetch("/api/generate/post", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          repository: repo,
+          platform,
+          tone: selectedTone,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to generate post: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      const newPost = {
+        id: "post1",
+        content: data.content,
+      };
+
+      setGeneratedPosts([newPost]);
+      setSelectedPost(newPost);
+      setEditedPost(newPost.content);
+    } catch (err) {
+      console.error("Error generating post:", err);
+      toast({
+        title: "Error generating post",
+        description:
+          err instanceof Error ? err.message : "Failed to generate post",
+        variant: "destructive",
+      });
+
+      // Create a fallback post if generation fails
+      const fallbackPost = {
+        id: "post1",
+        content: `Check out my ${repo.name} project on GitHub!\n\n${
+          repo.description || ""
+        }\n\nBuilt with ${repo.language || "code"}.\n\n#GitHub #Development`,
+      };
+
+      setGeneratedPosts([fallbackPost]);
+      setSelectedPost(fallbackPost);
+      setEditedPost(fallbackPost.content);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateMore = async () => {
+    if (!repository) return;
+
+    setIsGenerating(true);
+
+    try {
+      const response = await fetch("/api/generate/post", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          repository,
+          platform,
+          tone: selectedTone,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to generate post: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
       const newPost = {
         id: `post${generatedPosts.length + 1}`,
-        content: `New ${selectedTone} ${platform === "linkedin" ? "LinkedIn post" : "tweet"} for ${repository.name} with a ${selectedTone} tone. This is a simulation of AI-generated content that would analyze the repository's README and package.json to create a compelling ${platform === "linkedin" ? "LinkedIn post" : "tweet"}.`,
-      }
-      setGeneratedPosts([...generatedPosts, newPost])
-      setSelectedPost(newPost)
-      setEditedPost(newPost.content)
-      setIsGenerating(false)
+        content: data.content,
+      };
+
+      setGeneratedPosts([...generatedPosts, newPost]);
+      setSelectedPost(newPost);
+      setEditedPost(newPost.content);
 
       toast({
         title: "New post generated!",
         description: `A new ${selectedTone} post has been created for your project.`,
-      })
-    }, 2000)
-  }
+      });
+    } catch (err) {
+      console.error("Error generating more posts:", err);
+      toast({
+        title: "Error generating post",
+        description:
+          err instanceof Error ? err.message : "Failed to generate post",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleCopyToClipboard = () => {
-    navigator.clipboard.writeText(editedPost)
-    setCopied(true)
+    navigator.clipboard.writeText(editedPost);
+    setCopied(true);
 
     toast({
       title: "Copied to clipboard",
-      description: `Your ${platform === "linkedin" ? "LinkedIn post" : "X post"} has been copied to the clipboard.`,
-    })
+      description: `Your ${
+        platform === "linkedin" ? "LinkedIn post" : "X post"
+      } has been copied to the clipboard.`,
+    });
 
-    setTimeout(() => setCopied(false), 2000)
-  }
+    setTimeout(() => setCopied(false), 2000);
+  };
 
-  const handlePostSelect = (post) => {
-    setSelectedPost(post)
-    setEditedPost(post.content)
-  }
+  const handlePostSelect = (post: Post) => {
+    setSelectedPost(post);
+    setEditedPost(post.content);
+  };
 
-  const handlePlatformChange = (newPlatform) => {
-    router.push(`/generate/${repoId}?platform=${newPlatform}`)
-  }
+  const handlePlatformChange = (newPlatform: string) => {
+    router.push(`/generate/${repoId}?platform=${newPlatform}`);
+  };
+
+  const getLanguageColor = (language: string | null) => {
+    if (!language) return "bg-gray-500";
+
+    const colors: Record<string, string> = {
+      JavaScript: "bg-yellow-400",
+      TypeScript: "bg-blue-400",
+      HTML: "bg-orange-500",
+      CSS: "bg-purple-500",
+      Python: "bg-green-500",
+      Java: "bg-red-500",
+      Ruby: "bg-red-600",
+      Go: "bg-blue-300",
+      PHP: "bg-indigo-400",
+      default: "bg-gray-400",
+    };
+
+    return colors[language] || colors.default;
+  };
 
   if (isLoading) {
     return (
@@ -213,14 +277,16 @@ export default function GeneratePostPage() {
           <p className="text-zinc-400 text-sm mt-2">This may take a moment</p>
         </div>
       </div>
-    )
+    );
   }
 
-  if (!repository) {
+  if (error || !repository) {
     return (
       <div className="min-h-screen bg-linear-to-b from-zinc-950 to-black flex items-center justify-center">
-        <div className="text-center text-white">
-          <p className="text-xl mb-4">Repository not found.</p>
+        <div className="text-center text-white max-w-md">
+          <p className="text-xl mb-4">
+            {error || "Repository not found or could not be loaded."}
+          </p>
           <Button
             variant="outline"
             className="mt-4 border-white/20 text-white hover:bg-white/10"
@@ -231,7 +297,7 @@ export default function GeneratePostPage() {
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -257,7 +323,11 @@ export default function GeneratePostPage() {
               <p className="text-zinc-400 mt-1">{repository.description}</p>
             </div>
 
-            <Tabs value={platform} onValueChange={handlePlatformChange} className="w-full md:w-auto">
+            <Tabs
+              value={platform}
+              onValueChange={handlePlatformChange}
+              className="w-full md:w-auto"
+            >
               <TabsList className="bg-zinc-900 border border-zinc-800 p-1 w-full md:w-auto">
                 <TabsTrigger
                   value="linkedin"
@@ -279,19 +349,26 @@ export default function GeneratePostPage() {
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4 flex flex-wrap gap-4 items-center">
             <div className="flex items-center">
               <div
-                className={`h-3 w-3 rounded-full mr-2 bg-${repository.language === "TypeScript" ? "blue" : repository.language === "JavaScript" ? "yellow" : repository.language === "Python" ? "green" : "purple"}-500`}
+                className={`h-3 w-3 rounded-full mr-2 ${getLanguageColor(
+                  repository.language
+                )}`}
               ></div>
-              <span>{repository.language}</span>
+              <span>{repository.language || "Unknown"}</span>
             </div>
             <Separator orientation="vertical" className="h-6 bg-zinc-700" />
             <div className="flex items-center">
               <PackageIcon className="h-4 w-4 mr-2 text-zinc-400" />
-              <span>{Object.keys(repository.packageJson.dependencies).length} Dependencies</span>
+              <span>
+                {repository.packageJson
+                  ? Object.keys(repository.packageJson.dependencies).length
+                  : 0}{" "}
+                Dependencies
+              </span>
             </div>
             <Separator orientation="vertical" className="h-6 bg-zinc-700" />
             <div className="flex items-center">
               <GitBranchIcon className="h-4 w-4 mr-2 text-zinc-400" />
-              <span>main</span>
+              <span>{repository.default_branch || "main"}</span>
             </div>
           </div>
         </div>
@@ -307,28 +384,54 @@ export default function GeneratePostPage() {
                 </h2>
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-sm font-medium text-zinc-400">Primary Language</h3>
-                    <p className="mt-1 font-medium">{repository.language}</p>
+                    <h3 className="text-sm font-medium text-zinc-400">
+                      Primary Language
+                    </h3>
+                    <p className="mt-1 font-medium">
+                      {repository.language || "Not specified"}
+                    </p>
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-zinc-400">Key Technologies</h3>
+                    <h3 className="text-sm font-medium text-zinc-400">
+                      Key Technologies
+                    </h3>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {repository.packageJson &&
-                        Object.keys(repository.packageJson.dependencies)
+                        Object.keys(repository.packageJson.dependencies || {})
                           .slice(0, 5)
                           .map((dep) => (
-                            <Badge key={dep} variant="outline" className="bg-zinc-800 text-zinc-300 border-zinc-700">
+                            <Badge
+                              key={dep}
+                              variant="outline"
+                              className="bg-zinc-800 text-zinc-300 border-zinc-700"
+                            >
                               {dep}
                             </Badge>
                           ))}
+                      {(!repository.packageJson ||
+                        !repository.packageJson.dependencies ||
+                        Object.keys(repository.packageJson.dependencies)
+                          .length === 0) && (
+                        <span className="text-zinc-500">
+                          No dependencies found
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-zinc-400">README Preview</h3>
+                    <h3 className="text-sm font-medium text-zinc-400">
+                      README Preview
+                    </h3>
                     <div className="mt-2 text-sm text-zinc-400 max-h-40 overflow-y-auto p-3 bg-zinc-800/50 rounded-md border border-zinc-700">
-                      <pre className="whitespace-pre-wrap font-mono text-xs">
-                        {repository.readme.substring(0, 200)}...
-                      </pre>
+                      {repository.readme ? (
+                        <pre className="whitespace-pre-wrap font-mono text-xs">
+                          {repository.readme.substring(0, 200)}...
+                        </pre>
+                      ) : (
+                        <span className="text-zinc-500">
+                          README not available
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -343,8 +446,13 @@ export default function GeneratePostPage() {
                 </h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-zinc-400 mb-2 block">Post Tone</label>
-                    <Select value={selectedTone} onValueChange={setSelectedTone}>
+                    <label className="text-sm font-medium text-zinc-400 mb-2 block">
+                      Post Tone
+                    </label>
+                    <Select
+                      value={selectedTone}
+                      onValueChange={setSelectedTone}
+                    >
                       <SelectTrigger className="w-full bg-zinc-800 border-zinc-700 text-white">
                         <SelectValue placeholder="Select tone" />
                       </SelectTrigger>
@@ -378,12 +486,16 @@ export default function GeneratePostPage() {
                   </div>
                   <Separator className="bg-zinc-800" />
                   <div>
-                    <h3 className="text-sm font-medium text-zinc-400 mb-3">Post Variations</h3>
+                    <h3 className="text-sm font-medium text-zinc-400 mb-3">
+                      Post Variations
+                    </h3>
                     <div className="space-y-2">
                       {generatedPosts.map((post) => (
                         <Button
                           key={post.id}
-                          variant={selectedPost?.id === post.id ? "default" : "outline"}
+                          variant={
+                            selectedPost?.id === post.id ? "default" : "outline"
+                          }
                           className={`w-full justify-start ${
                             selectedPost?.id === post.id
                               ? "bg-blue-600 hover:bg-blue-700"
@@ -391,8 +503,11 @@ export default function GeneratePostPage() {
                           }`}
                           onClick={() => handlePostSelect(post)}
                         >
-                          {selectedPost?.id === post.id && <CheckIcon className="h-4 w-4 mr-2" />}
-                          Variation {post.id.replace("post", "").replace("tweet", "")}
+                          {selectedPost?.id === post.id && (
+                            <CheckIcon className="h-4 w-4 mr-2" />
+                          )}
+                          Variation{" "}
+                          {post.id.replace("post", "").replace("tweet", "")}
                         </Button>
                       ))}
                     </div>
@@ -408,10 +523,16 @@ export default function GeneratePostPage() {
               <CardContent className="p-6">
                 <Tabs defaultValue="edit">
                   <TabsList className="bg-zinc-800 border border-zinc-700 mb-4">
-                    <TabsTrigger value="edit" className="data-[state=active]:bg-zinc-700">
+                    <TabsTrigger
+                      value="edit"
+                      className="data-[state=active]:bg-zinc-700"
+                    >
                       Edit
                     </TabsTrigger>
-                    <TabsTrigger value="preview" className="data-[state=active]:bg-zinc-700">
+                    <TabsTrigger
+                      value="preview"
+                      className="data-[state=active]:bg-zinc-700"
+                    >
                       Preview
                     </TabsTrigger>
                   </TabsList>
@@ -420,11 +541,14 @@ export default function GeneratePostPage() {
                       className="min-h-[400px] bg-zinc-800 border-zinc-700 text-white font-medium"
                       value={editedPost}
                       onChange={(e) => setEditedPost(e.target.value)}
-                      placeholder={`Your ${platform === "linkedin" ? "LinkedIn post" : "X post"} content will appear here...`}
+                      placeholder={`Your ${
+                        platform === "linkedin" ? "LinkedIn post" : "X post"
+                      } content will appear here...`}
                     />
                     <div className="flex justify-between mt-2 text-xs text-zinc-500">
                       <span>
-                        {platform === "linkedin" ? "LinkedIn" : "X"} {platform === "linkedin" ? "post" : "tweet"}
+                        {platform === "linkedin" ? "LinkedIn" : "X"}{" "}
+                        {platform === "linkedin" ? "post" : "tweet"}
                       </span>
                       <span>{editedPost.length} characters</span>
                     </div>
@@ -437,7 +561,9 @@ export default function GeneratePostPage() {
                         </div>
                         <div>
                           <div className="font-semibold">Jane Developer</div>
-                          <div className="text-xs text-zinc-400">Full Stack Developer</div>
+                          <div className="text-xs text-zinc-400">
+                            Full Stack Developer
+                          </div>
                         </div>
                       </div>
                       <div className="whitespace-pre-line">{editedPost}</div>
@@ -449,7 +575,10 @@ export default function GeneratePostPage() {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={handleCopyToClipboard}>
+                        <Button
+                          className="flex-1 bg-blue-600 hover:bg-blue-700"
+                          onClick={handleCopyToClipboard}
+                        >
                           {copied ? (
                             <>
                               <CheckIcon className="mr-2 h-4 w-4" />
@@ -472,7 +601,10 @@ export default function GeneratePostPage() {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button variant="outline" className="flex-1 border-blue-600 text-blue-500 hover:bg-blue-600/10">
+                        <Button
+                          variant="outline"
+                          className="flex-1 border-blue-600 text-blue-500 hover:bg-blue-600/10"
+                        >
                           {platform === "linkedin" ? (
                             <>
                               <LinkedinIcon className="mr-2 h-4 w-4" />
@@ -487,7 +619,10 @@ export default function GeneratePostPage() {
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Open {platform === "linkedin" ? "LinkedIn" : "X"} to share this post</p>
+                        <p>
+                          Open {platform === "linkedin" ? "LinkedIn" : "X"} to
+                          share this post
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -495,7 +630,10 @@ export default function GeneratePostPage() {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button variant="ghost" className="flex-none border-zinc-700 text-zinc-400 hover:bg-zinc-800">
+                        <Button
+                          variant="ghost"
+                          className="flex-none border-zinc-700 text-zinc-400 hover:bg-zinc-800"
+                        >
                           <Share2Icon className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
@@ -511,5 +649,5 @@ export default function GeneratePostPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
